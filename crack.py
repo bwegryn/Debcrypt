@@ -3,29 +3,34 @@
 
 from passlib.hash import bcrypt
 from libs import pingo
+import argparse
 import os
 import sys
 
-options = input('You want crack? y/n ')
+parser = argparse.ArgumentParser(description='A script crack bcrypt hash.')
+parser.add_argument("--p", default="pass.txt", help="password file")
+parser.add_argument("--h", default="hash.txt", help="hash file")
 
-if (options != "y" and options != "n"):
-    sys.exit('Invalid Option')
+args = parser.parse_args()
+password_file = args.p
+hash_file = args.h
+passwords = {}
 
-passwords = (options == "y")
-text_file = open("pass.txt", "r")
+text_file = open(password_file, "r")
+hash_file = open(hash_file, "r")
 
 words = text_file.read().splitlines()
+hashes = hash_file.read().splitlines()
 
-hash = input('hash to crack: ')
 length = len(words)
+print()
 
-correct_word = ""
 for (index, word) in enumerate(words):
     pingo(index, length, prefix='Wait:', suffix='Complete')
-    correct = bcrypt.verify(word, hash)
-    if (correct):
-        correct_word = word
-        print()
+    if (len(passwords) == len(hashes)):
         break
-
-print("Results:", correct_word)
+    for hash in hashes:
+        if (bcrypt.verify(word, hash)):
+            passwords[hash] = word
+            print()
+            print("\nFound match: " + hash + ":" + word + "\n")
